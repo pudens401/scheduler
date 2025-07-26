@@ -1,0 +1,103 @@
+// controllers/deviceController.js
+
+const Device = require('../models/Device');
+const User = require('../models/User');
+
+// Get own device (patient/farmer)
+exports.getOwnDevice = async (req, res) => {
+  try {
+    const userId = req.user.id; // assume req.user from JWT middleware
+    const user = await User.findById(userId);
+
+    if (!user || !user.device) {
+      return res.status(404).json({ message: 'Device not found for user' });
+    }
+
+    const device = await Device.findById(user.device);
+    if (!device) {
+      return res.status(404).json({ message: 'Device not found' });
+    }
+
+    res.json(device);
+  } catch (error) {
+    console.error('Error fetching own device:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Get all patient devices (caretaker only)
+exports.getAllPatientDevices = async (req, res) => {
+  try {
+    // Confirm caretaker role
+    if (req.user.role !== 'caretaker') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    // Find all devices owned by patients
+    const devices = await Device.find({ ownerType: 'patient' }).populate('owner', 'name email');
+
+    res.json(devices);
+  } catch (error) {
+    console.error('Error fetching patient devices:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Update food level (farmer only)
+exports.updateFoodLevel = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { foodLevel } = req.body;
+
+    if (req.user.role !== 'farmer') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    if (typeof foodLevel !== 'number' || foodLevel < 0) {
+      return res.status(400).json({ message: 'Invalid foodLevel value' });
+    }
+
+    const user = await User.findById(userId).populate('device');
+    if (!user || !user.device) {
+      return res.status(404).json({ message: 'Device not found' });
+    }
+
+    user.device.foodLevel = foodLevel;
+    await user.device.save();
+
+    res.json({ message: 'Food level updated', foodLevel: user.device.foodLevel });
+  } catch (error) {
+    console.error('Error updating food level:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Manual control trigger (farmer only)
+exports.manualControl = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { action } = req.body;
+
+    if (req.user.role !== 'farmer') {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    if (typeof action !== 'string' || action.trim() === '') {
+      return res.status(400).json({ message: 'Invalid action' });
+    }
+
+    const user = await User.findById(userId).populate('device');
+    if (!user || !user.device) {
+      return res.status(404).json({ message: 'Device not found' });
+    }
+
+    // Here you would integrate with your IoT communication layer,
+    // e.g. send MQTT message or update device state in DB.
+    // For now, just respond success.
+
+    res.json({ message: `Manual control action '${action}' triggered` });
+  } catch (error) {
+    console.error('Error in manual control:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
