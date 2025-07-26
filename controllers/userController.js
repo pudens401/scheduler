@@ -117,7 +117,7 @@ async function login(req, res) {
     } else if (user.role === 'farmer') {
       return res.redirect('/dashboard/farmer');
     } else if (user.role === 'caretaker') {
-      return res.redirect('/dashboard/caretaker');
+      return res.redirect(`/dashboard/caretaker/${user._id}`);
     } else {
       return res.redirect('/'); // fallback or error page
     }

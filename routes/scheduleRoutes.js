@@ -6,6 +6,7 @@ const {authMiddleware,roleMiddleware} = require('../middlewares/auth.js');
 
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const Schedule = require('../models/Schedule.js');
 
 
 
@@ -15,8 +16,6 @@ router.get('schedule/:deviceId', scheduleController.getScheduleByDevice);
 // Update schedule by deviceId (only farmer or caretaker allowed)
 router.put(
   'schedule/:deviceId',
-  authMiddleware,
-  roleMiddleware(['farmer', 'caretaker']),
   scheduleController.updateScheduleByDevice
 );
 
@@ -52,6 +51,40 @@ router.get('/dashboard/patient/:id', async (req, res) => {
     user: { name: user.name, role: user.role }
   });
 });
+
+
+// Example data (replace with DB query)
+
+
+router.get('/dashboard/caretaker/:id', async (req, res) => {
+  const caretakerId = req.params.id;
+  const caretaker = await User.findById(caretakerId);
+  const caretakerName = caretaker.name;
+  const patients = await User.find({ role: 'patient' })
+        .select('-password')
+        .populate('device', '-__v -createdAt -updatedAt');
+
+  const schedules = await Schedule.find();
+
+  let notifications = await Notification.find();
+  notifications = notifications.map(n => ({
+    text: n.message,
+    type: n.type,
+    read: n.read,
+    time: n.createdAt.toLocaleString()
+  }));
+    // Render the caretaker dashboard with patients and notifications
+  res.render('caretakerDashboard', {
+    caretakerId,
+    caretakerName,
+    patients,
+    notifications,
+    schedules
+  });
+});
+
+module.exports = router;
+
 
 // API endpoint to update schedule
 router.put('/schedule/:deviceId', scheduleController.updateScheduleByDevice);
