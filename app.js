@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 
+const userRoutes = require('./routes/userRoutes');
+
 const app = express();
 
 // Middleware
@@ -12,6 +14,7 @@ app.use(express.urlencoded({ extended: true })); // Form data
 app.use(express.json()); // JSON data
 app.use(cookieParser()); // Parse JWT from cookies
 app.use(express.static(path.join(__dirname, 'public'))); // Serve CSS/JS
+app.use('/users', userRoutes); // User routes
 
 // Set EJS as view engine
 app.set('view engine', 'ejs');

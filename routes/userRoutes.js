@@ -5,8 +5,13 @@ const userController = require('../controllers/UserController');
 const { authMiddleware, roleMiddleware } = require('../middlewares/auth');
 
 // Public routes (no auth)
+router.get('/signup', userController.showSignupForm);
 router.post('/signup', userController.signup);
+
+
+router.get('/login', userController.showLoginForm);
 router.post('/login', userController.login);
+
 
 // Protected routes (auth required)
 router.get('/profile', authMiddleware, userController.getProfile);
