@@ -68,7 +68,9 @@ async function signup(req, res) {
 
       const schedule = new Schedule({
         device: device._id,
-        times: [],
+        deviceId: device.deviceId,
+        times: ["08:00","12:00","00:00","00:00","12:12","12:12"], // Default time
+        owner: user._id,
         action: '',
       });
       await schedule.save();
