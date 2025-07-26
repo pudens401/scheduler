@@ -51,7 +51,7 @@ async function signup(req, res) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = new User({ name, email, password: hashedPassword, role });
+    const user = new User({ name, email, password: hashedPassword, role, deviceId });
     await user.save();
 
     if (role === 'patient' || role === 'farmer') {
@@ -69,7 +69,7 @@ async function signup(req, res) {
       const schedule = new Schedule({
         device: device._id,
         deviceId: device.deviceId,
-        times: ["08:00","12:00","00:00","00:00","12:12","12:12"], // Default time
+        times: [{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"}], // Default time
         owner: user._id,
         action: '',
       });
@@ -113,7 +113,7 @@ async function login(req, res) {
 
     // Redirect based on role
     if (user.role === 'patient') {
-      return res.redirect('/dashboard/patient');
+      return res.redirect(`/dashboard/patient/${user._id}`);
     } else if (user.role === 'farmer') {
       return res.redirect('/dashboard/farmer');
     } else if (user.role === 'caretaker') {

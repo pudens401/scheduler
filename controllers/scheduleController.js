@@ -27,6 +27,15 @@ exports.getScheduleByDevice = async (req, res) => {
   }
 };
 
+exports.getScheduleByDeviceData = async (deviceId) => {
+  const device = await Device.findOne({ deviceId });
+  if (!device) return { times: [] };
+  const schedule = await Schedule.findOne({ device: device._id });
+  if (!schedule) return { times: [] };
+  return schedule; // Return raw schedule document
+};
+
+
 // Update schedule by deviceId
 exports.updateScheduleByDevice = async (req, res) => {
   try {

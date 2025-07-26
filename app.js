@@ -6,6 +6,8 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 
 const userRoutes = require('./routes/userRoutes');
+const scheduleRoutes = require('./routes/scheduleRoutes');
+const deviceRoutes = require('./routes/deviceRoutes');
 
 const app = express();
 
@@ -29,6 +31,8 @@ mongoose.connect(process.env.MONGO_URI)
 app.get('/', (req, res) => {
   res.render('auth/login', { title: 'Login' }); // We’ll create this later
 });
+app.use('/',scheduleRoutes)
+app.use('/',userRoutes)
 
 // Start server
 const PORT = process.env.PORT || 3000;

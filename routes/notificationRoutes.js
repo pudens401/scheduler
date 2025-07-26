@@ -18,7 +18,7 @@ router.get(
 router.post(
   '/:deviceId',
   notificationController.postNotificationFromIoT
-);
+);  // API route for IoT devices to post notifications
 
 // PATCH: mark a notification as read
 // Allowed roles: patient, farmer, caretaker
