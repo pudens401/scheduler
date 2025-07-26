@@ -69,7 +69,7 @@ async function signup(req, res) {
       const schedule = new Schedule({
         device: device._id,
         deviceId: device.deviceId,
-        times: [{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"}], // Default time
+        times: role==='farmer'? [{time:"08:00",portion:300},{time:"08:00",portion:700},{time:"07:00",portion:500}]: [{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"}], // Default time
         owner: user._id,
         action: '',
       });
@@ -115,7 +115,7 @@ async function login(req, res) {
     if (user.role === 'patient') {
       return res.redirect(`/dashboard/patient/${user._id}`);
     } else if (user.role === 'farmer') {
-      return res.redirect('/dashboard/farmer');
+      return res.redirect(`/dashboard/farmer/${user._id}`);
     } else if (user.role === 'caretaker') {
       return res.redirect(`/dashboard/caretaker/${user._id}`);
     } else {

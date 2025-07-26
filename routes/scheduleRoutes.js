@@ -83,7 +83,35 @@ router.get('/dashboard/caretaker/:id', async (req, res) => {
   });
 });
 
+
+
+router.get('/dashboard/farmer/:id', async (req, res) => {
+  const { id } = req.params;
+  // Example data (replace with DB query)
+  const farmer = await User.findById(id);
+  let schedule = await Schedule.findOne({ deviceId: farmer.deviceId });
+  let foodLevel = Math.floor(Math.random()*100); // Simulated food level
+  let notifications = await Notification.find({ deviceId: farmer.deviceId })
+   notifications = notifications
+    .map(n => ({
+      text: n.message,
+      type: n.type,
+      read: n.read,
+      time: n.createdAt.toLocaleString()
+    }));
+  const farmerData = {
+    schedule: schedule ? schedule.times : [],
+    foodLevel: foodLevel,
+    notifications: notifications,
+    deviceId: farmer.deviceId,
+    lastFeeding: 'Today, 07:00 AM'
+  };
+  // Fetch farmer data by id (replace this mock)
+  res.render('farmerDashboard', farmerData);
+});
+
 module.exports = router;
+
 
 
 // API endpoint to update schedule
