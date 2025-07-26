@@ -11,13 +11,10 @@ const Schedule = require('../models/Schedule.js');
 
 
 // Get schedule by deviceId (any authenticated user) API route
-router.get('schedule/:deviceId', scheduleController.getScheduleByDevice);
+router.get('/schedule/:deviceId', scheduleController.getScheduleByDevice);
 
 // Update schedule by deviceId (only farmer or caretaker allowed)
-router.put(
-  'schedule/:deviceId',
-  scheduleController.updateScheduleByDevice
-);
+//router.put('/schedule/:deviceId', scheduleController.updateScheduleByDevice);
 
 // Dashboard route for patient
 // This will render the EJS page with schedule and notifications
