@@ -137,5 +137,30 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('updateScheduleBtn').addEventListener('click', function() {
+            const rows = document.querySelectorAll('#scheduleTable tr');
+            const updatedSchedule = [];
+            rows.forEach(row => {
+                const inputs = row.querySelectorAll('input');
+                updatedSchedule.push({
+                    time: inputs[0].value,
+                    portion: parseInt(inputs[1].value, 10)
+                });
+            });
+
+            fetch('/schedule/<%= deviceId %>', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ times: updatedSchedule, action: 'update' })
+            })
+            .then(res => res.json())
+            .then(data => alert('Schedule updated successfully!'))
+            .catch(err => alert('Error updating schedule'));
+        });
+    });
+</script>
+<!-- filepath: d:\THE SANDBOX\scheduling-app\views\farmerDashboard.ejs -->
 </body>
 </html>
