@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser');
 const userRoutes = require('./routes/userRoutes');
 const scheduleRoutes = require('./routes/scheduleRoutes');
 const deviceRoutes = require('./routes/deviceRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
 
 const app = express();
 
@@ -33,6 +34,8 @@ app.get('/', (req, res) => {
 });
 app.use('/',scheduleRoutes)
 app.use('/',userRoutes)
+app.use('/',deviceRoutes)
+app.use('/',notificationRoutes)
 
 // Start server
 const PORT = process.env.PORT || 3000;

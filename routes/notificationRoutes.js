@@ -6,7 +6,7 @@ const { authMiddleware, roleMiddleware } = require('../middlewares/auth');
 // GET all notifications for a device
 // Allowed roles: patient, farmer, caretaker
 router.get(
-  '/:deviceId',
+  'notifications/:deviceId',
   authMiddleware,
   roleMiddleware(['patient', 'farmer', 'caretaker']),
   notificationController.getNotificationsByDevice
@@ -16,14 +16,14 @@ router.get(
 // No authMiddleware because this is meant for secure device-to-server calls
 // You can protect this route using an API key middleware if needed
 router.post(
-  '/:deviceId',
+  'notifications/:deviceId',
   notificationController.postNotificationFromIoT
 );  // API route for IoT devices to post notifications
 
 // PATCH: mark a notification as read
 // Allowed roles: patient, farmer, caretaker
 router.patch(
-  '/mark-read/:id',
+  'notifications/mark-read/:id',
   authMiddleware,
   roleMiddleware(['patient', 'farmer', 'caretaker']),
   notificationController.markAsRead
