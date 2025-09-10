@@ -15,7 +15,7 @@ const app = express();
 // Middleware
 app.use(express.urlencoded({ extended: true })); // Form data
 app.use(express.json()); // JSON data
-app.use(cookieParser()); // Parse JWT from cookies
+app.use(cookieParser()); // Cookies
 app.use(express.static(path.join(__dirname, 'public'))); // Serve CSS/JS
 app.use('/users', userRoutes); // User routes
 
@@ -30,12 +30,13 @@ mongoose.connect(process.env.MONGO_URI)
 
 // Placeholder route
 app.get('/', (req, res) => {
-  res.render('auth/login', { title: 'Login' }); // We’ll create this later
+  res.render('auth/login', { title: 'Login' });
 });
+app.use('/',notificationRoutes)
 app.use('/',scheduleRoutes)
 app.use('/',userRoutes)
 app.use('/',deviceRoutes)
-app.use('/',notificationRoutes)
+
 
 // Start server
 const PORT = process.env.PORT || 3000;
