@@ -63,8 +63,7 @@ exports.postNotificationFromIoT = async (req, res) => {
 exports.markAsRead = async (req, res) => {
   try {
     const { id } = req.params; // notification ID
-    const userId = req.user.id;
-    const userRole = req.user.role;
+    
 
     const notification = await Notification.findById(id).populate('device');
     if (!notification) {
@@ -73,7 +72,7 @@ exports.markAsRead = async (req, res) => {
 
     // Check access
     const device = notification.device;
-    const user = await User.findById(userId);
+    
 
     if (!device) {
       return res.status(404).json({ message: 'Device not found' });
