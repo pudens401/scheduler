@@ -21,7 +21,8 @@ router.post(
 // PATCH: mark a notification as read
 // Allowed roles: patient, farmer, caretaker
 router.patch(
-  '/notifications/mark-read/:id'
+  '/notifications/mark-read/:id',
+  notificationController.markAsRead
 );
 
 module.exports = router;
