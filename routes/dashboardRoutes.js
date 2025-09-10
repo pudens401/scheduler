@@ -15,10 +15,8 @@ router.get(
       const deviceId = user.device.deviceId;
       const scheduleData = user.device.schedule || [];
       // Fetch notifications for this device
-      const notifications = await Notification.find({ deviceId })
-        .sort({ createdAt: -1 })
-        .limit(10);
-
+      const notifications = await Notification.find({ deviceId });
+      console.log('Notifications:', notifications);
       res.render('patientDashboard', {
         user,
         deviceId,
