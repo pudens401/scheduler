@@ -17,8 +17,7 @@ router.get(
       // Fetch notifications for this device
       const notifications = await Notification.find({ deviceId })
         .sort({ createdAt: -1 })
-        .limit(10)
-        .lean();
+        .limit(10);
 
       res.render('patientDashboard', {
         user,
