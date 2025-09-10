@@ -7,8 +7,6 @@ const { authMiddleware, roleMiddleware } = require('../middlewares/auth');
 // Allowed roles: patient, farmer, caretaker
 router.get(
   'notifications/:deviceId',
-  authMiddleware,
-  roleMiddleware(['patient', 'farmer', 'caretaker']),
   notificationController.getNotificationsByDevice
 );
 
