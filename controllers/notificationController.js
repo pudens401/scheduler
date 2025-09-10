@@ -78,17 +78,6 @@ exports.markAsRead = async (req, res) => {
       return res.status(404).json({ message: 'Device not found' });
     }
 
-    if (userRole === 'patient' || userRole === 'farmer') {
-      if (!user.device.equals(device._id)) {
-        return res.status(403).json({ message: 'Access denied' });
-      }
-    } else if (userRole === 'caretaker') {
-      if (device.ownerType !== 'patient') {
-        return res.status(403).json({ message: 'Access denied' });
-      }
-    } else {
-      return res.status(403).json({ message: 'Access denied' });
-    }
 
     notification.read = true;
     await notification.save();
