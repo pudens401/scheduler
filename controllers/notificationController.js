@@ -8,8 +8,8 @@ const User = require('../models/User');
 exports.getNotificationsByDevice = async (req, res) => {
   try {
     const { deviceId } = req.params;
-    const userId = req.user.id;
-    const userRole = req.user.role;
+    //const userId = req.user.id;
+    //const userRole = req.user.role;
 
     // Validate device exists
     const device = await Device.findOne({ deviceId });
@@ -17,22 +17,6 @@ exports.getNotificationsByDevice = async (req, res) => {
       return res.status(404).json({ message: 'Device not found' });
     }
 
-    // Access control:
-    // Patient/Farmer can access only their own device notifications
-    // Caretaker can access notifications of patient devices only
-    if (userRole === 'patient' || userRole === 'farmer') {
-      const user = await User.findById(userId);
-      if (!user.device.equals(device._id)) {
-        return res.status(403).json({ message: 'Access denied' });
-      }
-    } else if (userRole === 'caretaker') {
-      // Caretaker can only access patient devices notifications
-      if (device.ownerType !== 'patient') {
-        return res.status(403).json({ message: 'Access denied' });
-      }
-    } else {
-      return res.status(403).json({ message: 'Access denied' });
-    }
 
     const notifications = await Notification.find({ device: device._id }).sort({ createdAt: -1 });
 
