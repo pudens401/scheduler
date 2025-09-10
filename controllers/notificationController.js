@@ -60,7 +60,8 @@ exports.postNotificationFromIoT = async (req, res) => {
     }
 
     const notification = new Notification({
-      device: deviceId,
+      deviceId: deviceId,
+      device:device._id,
       message,
       type: type || 'info',
     });
