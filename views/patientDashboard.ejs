@@ -79,11 +79,23 @@
                 <h2 class="text-xl md:text-2xl font-semibold mb-4 text-gray-700">Notifications</h2>
                 <div class="space-y-3" id="notifications">
                     <% notifications.forEach(function(note){ %>
-                    <div class="notification-<%= note.type %> p-3 rounded-md">
-                        <p class="text-sm md:text-base"><%= note.text %></p>
-                        <p class="text-xs md:text-sm text-gray-500 mt-1"><%= note.time %></p>
+                    <div class="notification-<%= note.type %> p-3 rounded-md flex justify-between items-center">
+                        <div>
+                            <p class="text-sm md:text-base"><%= note.message %></p>
+                            <p class="text-xs md:text-sm text-gray-500 mt-1"><%= new Date(note.createdAt).toLocaleString() %></p>
+                        </div>
+                        <% if (!note.read) { %>
+                        <form method="post" action="/notifications/mark-read/<%= note._id %>?_method=PATCH">
+                            <button type="submit" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">Mark as read</button>
+                        </form>
+                        <% } else { %>
+                        <span class="text-xs text-gray-400">Read</span>
+                        <% } %>
                     </div>
                     <% }) %>
+                    <% if (notifications.length === 0) { %>
+                    <div class="text-gray-500 text-sm">No notifications.</div>
+                    <% } %>
                 </div>
             </section>
 
