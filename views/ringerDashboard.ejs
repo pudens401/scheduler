@@ -145,25 +145,17 @@
 
       // Direct actions
       document.getElementById('ringBtn')?.addEventListener('click', function () {
-        fetch('/device/ringer-action', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'ring', deviceId })
-        })
-        .then(res => res.json())
-        .then(data => alert(data.message || 'Ringer triggered'))
-        .catch(() => alert('Error triggering ringer'));
+        fetch(`/device/ring/${deviceId}`)
+          .then(res => res.json())
+          .then(data => alert(data.message || 'Ringer triggered'))
+          .catch(() => alert('Error triggering ringer'));
       });
 
       document.getElementById('silentBtn')?.addEventListener('click', function () {
-        fetch('/device/ringer-action', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'silent', deviceId })
-        })
-        .then(res => res.json())
-        .then(data => alert(data.message || 'Ringer silenced'))
-        .catch(() => alert('Error silencing ringer'));
+        fetch(`/device/silent/${deviceId}`)
+          .then(res => res.json())
+          .then(data => alert(data.message || 'Ringer silenced'))
+          .catch(() => alert('Error silencing ringer'));
       });
     });
   </script>

@@ -2,6 +2,7 @@
 
 const Schedule = require('../models/Schedule');
 const Device = require('../models/Device');
+const { publish } = require('../utils/mqtt');
 
 // Get schedule by deviceId (deviceId is the Device.deviceId string)
 exports.getScheduleByDevice = async (req, res) => {
@@ -46,6 +47,13 @@ exports.updateScheduleByDevice = async (req, res) => {
       { $set: { times: normalized } },
       { upsert: true, new: true }
     );
+
+    // Publish any message to MQTT for schedule updates
+    try {
+      await publish(`GD/RNG/V2/SCHEDULE/${deviceId}`, { event: 'schedule.updated', count: normalized.length });
+    } catch (e) {
+      console.error('MQTT publish (schedule) failed:', e.message);
+    }
 
     res.json({ message: 'Schedule updated', schedule });
   } catch (err) {

@@ -2,6 +2,7 @@
 
 const Device = require('../models/Device');
 const User = require('../models/User');
+const { publish } = require('../utils/mqtt');
 
 // Get own device (patient/farmer)
 exports.getOwnDevice = async (req, res) => {
@@ -102,7 +103,7 @@ exports.manualControl = async (req, res) => {
   }
 };
 
-// Ringer manual action
+// Ringer manual action (POST)
 exports.ringerAction = async (req, res) => {
   try {
     const { action, deviceId } = req.body;
@@ -123,10 +124,46 @@ exports.ringerAction = async (req, res) => {
     device.ringerState = action;
     await device.save();
 
-    // TODO: trigger actual device command (e.g., MQTT/http)
-    return res.json({ message: `Ringer action '${action}' sent.` });
+    // Publish to MQTT topic
+    const topic = action === 'ring' ? `GD/RNG/V2/RING/${deviceId}` : `GD/RNG/V2/SILENT/${deviceId}`;
+    await publish(topic, `trigger:${action}`);
+
+    return res.json({ message: `Ringer action '${action}' sent via MQTT.` });
   } catch (error) {
     console.error('Error in ringer action:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Ringer manual action via GET endpoints
+exports.ringGet = async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    const device = await Device.findOne({ deviceId });
+    if (!device) return res.status(404).send('Device not found');
+
+    device.ringerState = 'ring';
+    await device.save();
+    await publish(`GD/RNG/V2/RING/${deviceId}`, 'trigger:ring');
+    res.json({ message: 'Ring command published' });
+  } catch (err) {
+    console.error('Ring GET error:', err);
+    res.status(500).send('Server error');
+  }
+};
+
+exports.silentGet = async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    const device = await Device.findOne({ deviceId });
+    if (!device) return res.status(404).send('Device not found');
+
+    device.ringerState = 'silent';
+    await device.save();
+    await publish(`GD/RNG/V2/SILENT/${deviceId}`, 'trigger:silent');
+    res.json({ message: 'Silent command published' });
+  } catch (err) {
+    console.error('Silent GET error:', err);
+    res.status(500).send('Server error');
   }
 };
