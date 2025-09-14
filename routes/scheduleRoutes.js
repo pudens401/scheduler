@@ -13,8 +13,8 @@ const Schedule = require('../models/Schedule.js');
 // Get schedule by deviceId (any authenticated user) API route
 router.get('/schedule/:deviceId', scheduleController.getScheduleByDevice);
 
-// Update schedule by deviceId (only farmer or caretaker allowed)
-//router.put('/schedule/:deviceId', scheduleController.updateScheduleByDevice);
+// Update schedule by deviceId (public)
+router.put('/schedule/:deviceId', scheduleController.updateScheduleByDevice);
 
 // Dashboard route for patient
 // This will render the EJS page with schedule and notifications
@@ -107,13 +107,23 @@ router.get('/dashboard/farmer/:id', async (req, res) => {
   res.render('farmerDashboard', farmerData);
 });
 
-module.exports = router;
+router.get('/dashboard/ringer/:id', async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findById(id);
+  const deviceId = user.deviceId;
 
+  // Load schedule (if any)
+  const schedule = await Schedule.findOne({ deviceId });
+  const scheduleData = (schedule?.times || []).map(t => ({
+    time24: t.time,
+    action: t.action || 'ring',
+  }));
 
-
-// API endpoint to update schedule
-router.put('/schedule/:deviceId', scheduleController.updateScheduleByDevice);
-
-
+  res.render('ringerDashboard', {
+    deviceId,
+    scheduleData,
+    user: { name: user.name, role: user.role },
+  });
+});
 
 module.exports = router;

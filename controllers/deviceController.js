@@ -101,3 +101,32 @@ exports.manualControl = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// Ringer manual action
+exports.ringerAction = async (req, res) => {
+  try {
+    const { action, deviceId } = req.body;
+
+    if (!deviceId) {
+      return res.status(400).json({ message: 'deviceId is required' });
+    }
+    if (!['ring', 'silent'].includes(action)) {
+      return res.status(400).json({ message: 'Invalid action' });
+    }
+
+    const device = await Device.findOne({ deviceId });
+    if (!device) {
+      return res.status(404).json({ message: 'Device not found' });
+    }
+
+    // Optionally persist current ringer state
+    device.ringerState = action;
+    await device.save();
+
+    // TODO: trigger actual device command (e.g., MQTT/http)
+    return res.json({ message: `Ringer action '${action}' sent.` });
+  } catch (error) {
+    console.error('Error in ringer action:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};

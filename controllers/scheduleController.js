@@ -7,22 +7,10 @@ const Device = require('../models/Device');
 exports.getScheduleByDevice = async (req, res) => {
   try {
     const { deviceId } = req.params;
-
-    // Find device by deviceId string
-    const device = await Device.findOne({ deviceId });
-    if (!device) {
-      return res.status(404).json({ message: 'Device not found' });
-    }
-
-    // Find schedule by device _id
-    const schedule = await Schedule.findOne({ device: device._id });
-    if (!schedule) {
-      return res.status(404).json({ message: 'Schedule not found' });
-    }
-
-    res.json(schedule);
-  } catch (error) {
-    console.error('Error getting schedule:', error);
+    const schedule = await Schedule.findOne({ deviceId });
+    return res.json(schedule || { deviceId, times: [] });
+  } catch (err) {
+    console.error('Get schedule error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -40,37 +28,28 @@ exports.getScheduleByDeviceData = async (deviceId) => {
 exports.updateScheduleByDevice = async (req, res) => {
   try {
     const { deviceId } = req.params;
-    const { times, action } = req.body;
+    const { times } = req.body; // array of { time, medication? portion? action? }
 
-    // Validate inputs (basic)
     if (!Array.isArray(times)) {
-      return res.status(400).json({ message: '`times` must be an array' });
-    }
-    if (typeof action !== 'string') {
-      return res.status(400).json({ message: '`action` must be a string' });
+      return res.status(400).json({ message: 'times must be an array' });
     }
 
-    // Find device
-    const device = await Device.findOne({ deviceId });
-    if (!device) {
-      return res.status(404).json({ message: 'Device not found' });
-    }
+    const normalized = times.map(t => ({
+      time: t.time,
+      medication: t.medication,
+      portion: t.portion,
+      action: t.action,
+    }));
 
-    // Find schedule by device _id
-    let schedule = await Schedule.findOne({ device: device._id });
-    if (!schedule) {
-      // Optionally create a new schedule if none exists (shouldn't happen if auto-created)
-      schedule = new Schedule({ device: device._id, times, action });
-    } else {
-      // Update fields
-      schedule.times = times;
-      schedule.action = action;
-    }
+    const schedule = await Schedule.findOneAndUpdate(
+      { deviceId },
+      { $set: { times: normalized } },
+      { upsert: true, new: true }
+    );
 
-    await schedule.save();
-    res.json(schedule);
-  } catch (error) {
-    console.error('Error updating schedule:', error);
+    res.json({ message: 'Schedule updated', schedule });
+  } catch (err) {
+    console.error('Update schedule error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };

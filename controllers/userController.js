@@ -29,12 +29,14 @@ async function signup(req, res) {
       return res.render('auth/signup', { error: 'Missing required fields' });
     }
 
-    if (!['patient', 'caretaker', 'farmer'].includes(role)) {
+    // Allow ringer
+    if (!['patient', 'caretaker', 'farmer', 'ringer'].includes(role)) {
       return res.render('auth/signup', { error: 'Invalid role' });
     }
 
-    if ((role === 'patient' || role === 'farmer') && !deviceId) {
-      return res.render('auth/signup', { error: 'Device ID is required for patient/farmer' });
+    // Require device for patient/farmer/ringer
+    if ((role === 'patient' || role === 'farmer' || role === 'ringer') && !deviceId) {
+      return res.render('auth/signup', { error: 'Device ID is required for patient/farmer/ringer' });
     }
 
     const existingUser = await User.findOne({ email });
@@ -42,7 +44,7 @@ async function signup(req, res) {
       return res.render('auth/signup', { error: 'Email already registered' });
     }
 
-    if (role === 'patient' || role === 'farmer') {
+    if (role === 'patient' || role === 'farmer' || role === 'ringer') {
       const existingDevice = await Device.findOne({ deviceId });
       if (existingDevice) {
         return res.render('auth/signup', { error: 'Device ID already in use' });
@@ -54,22 +56,41 @@ async function signup(req, res) {
     const user = new User({ name, email, password: hashedPassword, role, deviceId });
     await user.save();
 
-    if (role === 'patient' || role === 'farmer') {
+    if (role === 'patient' || role === 'farmer' || role === 'ringer') {
       const device = new Device({
         deviceId,
         ownerType: role,
         owner: user._id,
-        foodLevel: 0,
+        foodLevel: role === 'farmer' ? 0 : undefined,
       });
       await device.save();
 
       user.device = device._id;
       await user.save();
 
+      const times =
+        role === 'farmer'
+          ? [
+              { time: '08:00', portion: 300 },
+              { time: '12:00', portion: 700 },
+              { time: '18:00', portion: 500 },
+            ]
+          : role === 'patient'
+          ? [
+              { time: '08:00', medication: 'default' },
+              { time: '12:00', medication: 'default' },
+              { time: '18:00', medication: 'default' },
+            ]
+          : [
+              { time: '08:00', action: 'ring' },
+              { time: '12:00', action: 'ring' },
+              { time: '18:00', action: 'silent' },
+            ];
+
       const schedule = new Schedule({
         device: device._id,
         deviceId: device.deviceId,
-        times: role==='farmer'? [{time:"08:00",portion:300},{time:"08:00",portion:700},{time:"07:00",portion:500}]: [{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"},{time:"08:00",medication:"default"}], // Default time
+        times,
         owner: user._id,
         action: '',
       });
@@ -78,19 +99,29 @@ async function signup(req, res) {
 
     const token = createToken(user);
     res.cookie('token', token, { httpOnly: true });
-    res.redirect('/login'); // or /profile, etc.
+
+    // Redirect by role
+    if (user.role === 'patient') {
+      return res.redirect(`/dashboard/patient/${user._id}`);
+    } else if (user.role === 'farmer') {
+      return res.redirect(`/dashboard/farmer/${user._id}`);
+    } else if (user.role === 'caretaker') {
+      return res.redirect(`/dashboard/caretaker/${user._id}`);
+    } else if (user.role === 'ringer') {
+      return res.redirect(`/dashboard/ringer/${user._id}`);
+    } else {
+      return res.redirect('/');
+    }
   } catch (err) {
     console.error('Signup error:', err);
-    res.render('auth/signup', { error: 'Server error' });
+    return res.render('auth/signup', { error: 'Server error' });
   }
 }
-
 
 // Render login form (GET)
 function showLoginForm(req, res) {
   res.render('auth/login', { error: null }); // Always define `error`
 }
-
 
 // Handle login (POST)
 async function login(req, res) {
@@ -118,16 +149,16 @@ async function login(req, res) {
       return res.redirect(`/dashboard/farmer/${user._id}`);
     } else if (user.role === 'caretaker') {
       return res.redirect(`/dashboard/caretaker/${user._id}`);
+    } else if (user.role === 'ringer') {
+      return res.redirect(`/dashboard/ringer/${user._id}`);
     } else {
-      return res.redirect('/'); // fallback or error page
+      return res.redirect('/');
     }
   } catch (err) {
     console.error('Login error:', err);
     res.render('auth/login', { error: 'Server error' });
   }
 }
-
-
 
 // Get profile controller
 async function getProfile(req, res) {

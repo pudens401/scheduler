@@ -4,19 +4,16 @@ const router = express.Router();
 const deviceController = require('../controllers/deviceController');
 const { authMiddleware, roleMiddleware } = require('../middlewares/auth');
 
+// Public ringer action (no auth)
+router.post('/device/ringer-action', deviceController.ringerAction);
+
 // All routes require authentication
-router.use(authMiddleware);
+// router.use(authMiddleware);
 
 // Patient and farmer can get their own device info
-router.get('/me', roleMiddleware(['patient', 'farmer']), deviceController.getOwnDevice);
+// router.get('/me', roleMiddleware(['patient', 'farmer']), deviceController.getOwnDevice);
 
 // Caretaker can get all patient devices
-router.get('/patients', roleMiddleware(['caretaker']), deviceController.getAllPatientDevices);
-
-// Farmer can update food level
-router.put('/food-level', roleMiddleware(['farmer']), deviceController.updateFoodLevel);
-
-// Farmer can trigger manual control actions
-router.post('/manual-control', roleMiddleware(['farmer']), deviceController.manualControl);
+// router.get('/patients', roleMiddleware(['caretaker']), deviceController.getAllPatientDevices);
 
 module.exports = router;

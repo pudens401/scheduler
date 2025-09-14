@@ -5,7 +5,11 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
-  role: { type: String, enum: ['patient', 'caretaker', 'farmer'], required: true },
+  role: {
+    type: String,
+    enum: ['patient', 'caretaker', 'farmer', 'ringer'],
+    required: true,
+  },
   device: { type: mongoose.Schema.Types.ObjectId, ref: 'Device' },
   deviceId: { type: String, unique: true }, // For patient/farmer
 }, { timestamps: true });
