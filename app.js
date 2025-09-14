@@ -17,6 +17,11 @@ app.use(express.urlencoded({ extended: true })); // Form data
 app.use(express.json()); // JSON data
 app.use(cookieParser()); // Cookies
 app.use(express.static(path.join(__dirname, 'public'))); // Serve CSS/JS
+// Correct MIME type for web manifest
+app.get('/manifest.webmanifest', (req, res, next) => {
+  res.type('application/manifest+json');
+  next();
+});
 app.use('/users', userRoutes); // User routes
 
 // Set EJS as view engine

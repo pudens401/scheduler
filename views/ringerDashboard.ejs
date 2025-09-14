@@ -14,6 +14,9 @@
       .action-input { min-width: 160px; }
     }
   </style>
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#fb923c">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
 </head>
 <body class="bg-orange-50 font-sans">
   <div class="container mx-auto px-4 py-6 max-w-6xl">
@@ -158,6 +161,12 @@
           .catch(() => alert('Error silencing ringer'));
       });
     });
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(console.error);
+      });
+    }
   </script>
 </body>
 </html>
