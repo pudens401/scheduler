@@ -1,11 +1,15 @@
-// Send current datetime as ISO string to MQTT
+// Send current datetime as ISO string in GMT+2 to MQTT
 exports.setTime = async (req, res) => {
   try {
     const { deviceId } = req.params;
     if (!deviceId) return res.status(400).json({ message: 'deviceId is required' });
-    const nowIso = new Date().toISOString();
-    await publish(`GD/RNG/V2/TIME/${deviceId}`, nowIso);
-    res.json({ message: 'Current time sent', time: nowIso });
+    const now = new Date();
+    // Add 2 hours for GMT+2
+    now.setHours(now.getHours() + 2);
+    // Format as ISO string (local time, but with Z removed)
+    const isoGmt2 = now.toISOString().replace('Z', '');
+    await publish(`GD/RNG/V2/TIME/${deviceId}`, isoGmt2);
+    res.json({ message: 'Current time sent (GMT+2)', time: isoGmt2 });
   } catch (err) {
     console.error('Set time error:', err);
     res.status(500).json({ message: 'Server error' });
