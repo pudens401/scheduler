@@ -92,6 +92,9 @@
             <button id="silentBtn" class="btn-orange px-6 py-2 rounded font-semibold">
               Silent
             </button>
+            <button id="setTimeBtn" class="btn-orange px-6 py-2 rounded font-semibold">
+              Set Time
+            </button>
           </div>
         </section>
 
@@ -179,6 +182,13 @@
           .then(res => res.json())
           .then(data => alert(data.message || 'Ringer silenced'))
           .catch(() => alert('Error silencing ringer'));
+      });
+
+      document.getElementById('setTimeBtn')?.addEventListener('click', function () {
+        fetch(`/device/set-time/${deviceId}`)
+          .then(res => res.json())
+          .then(data => alert(data.message || `Time sent: ${data.time}`))
+          .catch(() => alert('Error sending time'));
       });
     });
 

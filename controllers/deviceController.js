@@ -1,3 +1,16 @@
+// Send current datetime as ISO string to MQTT
+exports.setTime = async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    if (!deviceId) return res.status(400).json({ message: 'deviceId is required' });
+    const nowIso = new Date().toISOString();
+    await publish(`GD/RNG/V2/TIME/${deviceId}`, nowIso);
+    res.json({ message: 'Current time sent', time: nowIso });
+  } catch (err) {
+    console.error('Set time error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 // controllers/deviceController.js
 
 const Device = require('../models/Device');

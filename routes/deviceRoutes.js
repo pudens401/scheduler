@@ -1,3 +1,5 @@
+// Send current time to MQTT
+router.get('/device/set-time/:deviceId', deviceController.setTime);
 const express = require('express');
 const router = express.Router();
 
