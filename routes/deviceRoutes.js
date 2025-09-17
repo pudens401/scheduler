@@ -1,11 +1,10 @@
-
 const express = require('express');
-const router = express.Router();
-// Send current time to MQTT
-router.get('/device/set-time/:deviceId', deviceController.setTime);
-
 const deviceController = require('../controllers/deviceController');
 const { authMiddleware, roleMiddleware } = require('../middlewares/auth');
+const router = express.Router();
+
+// Send current time to MQTT
+router.get('/device/set-time/:deviceId', deviceController.setTime);
 
 // Public ringer action (no auth)
 router.post('/device/ringer-action', deviceController.ringerAction);
