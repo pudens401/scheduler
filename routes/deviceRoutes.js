@@ -1,7 +1,8 @@
-// Send current time to MQTT
-router.get('/device/set-time/:deviceId', deviceController.setTime);
+
 const express = require('express');
 const router = express.Router();
+// Send current time to MQTT
+router.get('/device/set-time/:deviceId', deviceController.setTime);
 
 const deviceController = require('../controllers/deviceController');
 const { authMiddleware, roleMiddleware } = require('../middlewares/auth');
