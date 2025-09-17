@@ -48,9 +48,9 @@ exports.updateScheduleByDevice = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    // Publish any message to MQTT for schedule updates
+    // Publish the same object as getScheduleByDevice response to MQTT for schedule updates
     try {
-      await publish(`GD/RNG/V2/SCHEDULE/${deviceId}`, { event: 'schedule.updated', count: normalized.length });
+      await publish(`GD/RNG/V2/SCHEDULE/${deviceId}`, { deviceId, times: normalized });
     } catch (e) {
       console.error('MQTT publish (schedule) failed:', e.message);
     }
