@@ -6,6 +6,9 @@ const router = express.Router();
 // Send current time to MQTT
 router.get('/device/set-time/:deviceId', deviceController.setTime);
 
+// Send reset command to device
+router.get('/device/reset/:deviceId', deviceController.resetDevice);
+
 // Public ringer action (no auth)
 router.post('/device/ringer-action', deviceController.ringerAction);
 

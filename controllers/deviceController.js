@@ -15,6 +15,19 @@ exports.setTime = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// Send reset command to device via MQTT
+exports.resetDevice = async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    if (!deviceId) return res.status(400).json({ message: 'deviceId is required' });
+    await publish(`GD/RNG/V2/RESTART/${deviceId}`, 'restart');
+    res.json({ message: 'Reset command sent to device' });
+  } catch (err) {
+    console.error('Reset device error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 // controllers/deviceController.js
 
 const Device = require('../models/Device');
