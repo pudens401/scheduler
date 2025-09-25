@@ -224,9 +224,16 @@ async function getAllPatients(req, res) {
   }
 }
 
+// Logout controller
+function logout(req, res) {
+  res.clearCookie('token');
+  res.redirect('/users/login');
+}
+
 module.exports = {
   signup,
   login,
+  logout,
   getProfile,
   updateProfile,
   getAllPatients,

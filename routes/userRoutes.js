@@ -11,6 +11,7 @@ router.post('/signup', userController.signup);
 
 router.get('/login', userController.showLoginForm);
 router.post('/login', userController.login);
+router.post('/logout', userController.logout);
 
 
 // Protected routes (auth required)
