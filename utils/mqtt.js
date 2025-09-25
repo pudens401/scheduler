@@ -9,6 +9,7 @@ const MQTT_PASSWORD = process.env.MQTT_PASSWORD;
 const options = {
   reconnectPeriod: 2000,
   queueQoSZero: true,
+  maxPacketSize: 65536
 };
 
 if (MQTT_USERNAME) options.username = MQTT_USERNAME;
