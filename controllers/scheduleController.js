@@ -48,9 +48,12 @@ exports.updateScheduleByDevice = async (req, res) => {
       { upsert: true, new: true }
     );
 
-    // Publish the same object as getScheduleByDevice response to MQTT for schedule updates
+    // Publish lean data for IoT device - only times array with time strings
     try {
-      await publish(`GD/RNG/V2/SCHEDULE/${deviceId}`, { deviceId, times: normalized });
+      const leanSchedule = {
+        times: normalized.map(t => ({ time: t.time })).filter(t => t.time)
+      };
+      await publish(`GD/RNG/V2/SCHEDULE/${deviceId}`, leanSchedule);
     } catch (e) {
       console.error('MQTT publish (schedule) failed:', e.message);
     }
