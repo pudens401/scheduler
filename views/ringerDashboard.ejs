@@ -40,6 +40,7 @@
                 <tr class="border-b">
                   <th class="text-left py-2 px-1 text-orange-700 md:text-lg">Time</th>
                   <th class="text-left py-2 px-1 text-orange-700 md:text-lg">Action</th>
+                  <th class="text-left py-2 px-1 text-orange-700 md:text-lg">Delete</th>
                 </tr>
               </thead>
               <tbody id="scheduleTable">
@@ -53,6 +54,9 @@
                       <option value="ring" <%= (item.action || 'ring') === 'ring' ? 'selected' : '' %>>Ring</option>
                       <option value="silent" <%= (item.action || '') === 'silent' ? 'selected' : '' %>>Silent</option>
                     </select>
+                  </td>
+                  <td class="py-3 px-1 text-center">
+                    <button type="button" class="text-red-500 hover:text-red-700 font-bold text-lg delete-row-btn">×</button>
                   </td>
                 </tr>
                 <% }) %>
@@ -146,8 +150,18 @@
               <option value="silent">Silent</option>
             </select>
           </td>
+          <td class="py-3 px-1 text-center">
+            <button type="button" class="text-red-500 hover:text-red-700 font-bold text-lg delete-row-btn">×</button>
+          </td>
         `;
         table.appendChild(newRow);
+      });
+
+      // Delete row functionality (using event delegation)
+      document.getElementById('scheduleTable')?.addEventListener('click', function(e) {
+        if (e.target.classList.contains('delete-row-btn')) {
+          e.target.closest('tr').remove();
+        }
       });
 
       // Update schedule (send times + action to backend)
