@@ -51,9 +51,22 @@ exports.updateScheduleByDevice = async (req, res) => {
     // Publish lean data for IoT device - only times array with time strings
     try {
       const leanSchedule = {
-        times: normalized.map(t => ({ time: t.time })).filter(t => t.time)
+        times: normalized.map(t => ({ time: t.time, portion: t.portion })).filter(t => t.time)
       };
-      await publish(`GD/RNG/V2/SCHEDULE/${deviceId}`, leanSchedule);
+      
+      // Check if this is a farmer device (starts with 'fd' or has portion data)
+      const isFarmerDevice = deviceId.toLowerCase().startsWith('fd') || 
+                           normalized.some(t => t.portion !== undefined);
+      
+      if (isFarmerDevice) {
+        await publish(`KY/FEED/UPDATE/${deviceId}`, leanSchedule);
+      } else {
+        // For ringer devices, only send time data
+        const ringerSchedule = {
+          times: normalized.map(t => ({ time: t.time })).filter(t => t.time)
+        };
+        await publish(`GD/RNG/V2/SCHEDULE/${deviceId}`, ringerSchedule);
+      }
     } catch (e) {
       console.error('MQTT publish (schedule) failed:', e.message);
     }

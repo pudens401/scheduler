@@ -71,18 +71,23 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Food Level -->
                     <div class="bg-green-50 rounded-lg p-4 border border-green-100">
-                        <div class="flex items-center mb-2">
-                            <div class="bg-green-100 p-2 rounded-full mr-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center">
+                                <div class="bg-green-100 p-2 rounded-full mr-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </div>
+                                <h3 class="font-medium text-gray-700">Food Level</h3>
                             </div>
-                            <h3 class="font-medium text-gray-700">Food Level</h3>
+                            <button id="refreshFeedBtn" class="bg-blue-100 hover:bg-blue-200 text-blue-600 px-3 py-1 rounded text-sm transition duration-200">
+                                Refresh
+                            </button>
                         </div>
                         <div class="h-4 bg-gray-200 rounded-full overflow-hidden">
-                            <div class="h-full bg-green-500" style="width: <%= foodLevel %>%;"></div>
+                            <div id="foodLevelBar" class="h-full bg-green-500 transition-all duration-300" style="width: <%= foodLevel %>%;"></div>
                         </div>
-                        <p class="text-right text-sm text-gray-600 mt-1"><%= foodLevel %>% remaining</p>
+                        <p id="foodLevelText" class="text-right text-sm text-gray-600 mt-1"><%= foodLevel %>% remaining</p>
                     </div>
                     
                     <!-- Manual Controls -->
@@ -91,6 +96,9 @@
                         <div class="flex flex-col gap-2">
                             <button class="manual-control bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md transition duration-200 text-sm">
                                 Feed Now (100g)
+                            </button>
+                            <button id="setTimeBtn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md transition duration-200 text-sm">
+                                Set Time
                             </button>
                         </div>
                     </div>
@@ -139,25 +147,101 @@
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        const deviceId = '<%= deviceId %>';
+        
+        // Update schedule - now publishes to KY/FEED/FEED topic
         document.getElementById('updateScheduleBtn').addEventListener('click', function() {
             const rows = document.querySelectorAll('#scheduleTable tr');
             const updatedSchedule = [];
             rows.forEach(row => {
                 const inputs = row.querySelectorAll('input');
-                updatedSchedule.push({
-                    time: inputs[0].value,
-                    portion: parseInt(inputs[1].value, 10)
-                });
+                if (inputs.length >= 2) {
+                    updatedSchedule.push({
+                        time: inputs[0].value,
+                        portion: parseInt(inputs[1].value, 10)
+                    });
+                }
             });
 
-            fetch('/schedule/<%= deviceId %>', {
+            fetch('/schedule/' + deviceId, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ times: updatedSchedule, action: 'update' })
             })
             .then(res => res.json())
-            .then(data => alert('Schedule updated successfully!'))
+            .then(data => alert('Schedule updated and sent to device!'))
             .catch(err => alert('Error updating schedule'));
+        });
+        
+        // Refresh feed level
+        document.getElementById('refreshFeedBtn').addEventListener('click', function() {
+            const button = this;
+            button.textContent = 'Loading...';
+            button.disabled = true;
+            
+            fetch('/device/feed-level/' + deviceId)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.level !== undefined) {
+                        const level = Math.round(data.level);
+                        document.getElementById('foodLevelBar').style.width = level + '%';
+                        document.getElementById('foodLevelText').textContent = level + '% remaining';
+                        alert('Feed level updated: ' + level + '%');
+                    } else {
+                        alert(data.message || 'Feed level received');
+                    }
+                })
+                .catch(err => {
+                    alert('Error getting feed level - check device connection');
+                })
+                .finally(() => {
+                    button.textContent = 'Refresh';
+                    button.disabled = false;
+                });
+        });
+        
+        // Manual feed
+        document.querySelector('.manual-control').addEventListener('click', function() {
+            fetch('/device/manual-feed/' + deviceId)
+                .then(res => res.json())
+                .then(data => alert(data.message || 'Feed command sent!'))
+                .catch(err => alert('Error sending feed command'));
+        });
+        
+        // Set time
+        document.getElementById('setTimeBtn').addEventListener('click', function() {
+            fetch('/device/set-time-farmer/' + deviceId)
+                .then(res => res.json())
+                .then(data => alert(data.message || `Time sent: ${data.time}`))
+                .catch(err => alert('Error sending time'));
+        });
+        
+        // Delete schedule row functionality
+        document.addEventListener('click', function(e) {
+            if (e.target.classList.contains('delete-btn')) {
+                e.target.closest('tr').remove();
+            }
+        });
+        
+        // Add new schedule row
+        document.getElementById('addScheduleBtn').addEventListener('click', function() {
+            const table = document.getElementById('scheduleTable');
+            const newRow = document.createElement('tr');
+            newRow.className = 'border-b';
+            newRow.innerHTML = `
+                <td class="py-3 px-1">
+                    <input type="time" value="08:00" class="border rounded px-2 py-1 w-full schedule-input">
+                </td>
+                <td class="py-3 px-1">
+                    <input type="number" value="100" class="border rounded px-2 py-1 w-full" min="0" step="50">
+                </td>
+                <td class="py-3 px-1">
+                    <button class="delete-btn bg-red-100 hover:bg-red-200 text-red-600 py-1 px-3 rounded-md text-sm transition duration-200">
+                        Delete
+                    </button>
+                </td>
+            `;
+            table.appendChild(newRow);
         });
     });
 </script>

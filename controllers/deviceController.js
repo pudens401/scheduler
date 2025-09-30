@@ -28,6 +28,111 @@ exports.resetDevice = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
+// Farmer: Request feed level
+exports.requestFeedLevel = async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    if (!deviceId) return res.status(400).json({ message: 'deviceId is required' });
+    
+    const { client } = require('../utils/mqtt');
+    const responseTopic = `KY/FEED/LEVEL/SHOW/${deviceId}`;
+    
+    // Clean up any existing subscription first
+    client.unsubscribe(responseTopic);
+    
+    // Publish request for feed level
+    await publish(`KY/FEED/LEVEL/LOOK/${deviceId}`, 'request');
+    
+    // Set up timeout promise
+    const timeout = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Timeout')), 10000)
+    );
+    
+    // Set up response listener promise with proper cleanup
+    const responsePromise = new Promise((resolve, reject) => {
+      let timeoutId;
+      
+      const messageHandler = (topic, message) => {
+        if (topic === responseTopic) {
+          // Clean up immediately
+          clearTimeout(timeoutId);
+          client.removeListener('message', messageHandler);
+          client.unsubscribe(responseTopic);
+          
+          try {
+            const level = parseFloat(message.toString());
+            if (isNaN(level)) {
+              reject(new Error('Invalid level data received'));
+            } else {
+              resolve({ level });
+            }
+          } catch (err) {
+            reject(new Error('Failed to parse level data'));
+          }
+        }
+      };
+      
+      // Set cleanup timeout
+      timeoutId = setTimeout(() => {
+        client.removeListener('message', messageHandler);
+        client.unsubscribe(responseTopic);
+        reject(new Error('Timeout'));
+      }, 10000);
+      
+      client.on('message', messageHandler);
+      client.subscribe(responseTopic);
+    });
+    
+    // Race between response and timeout
+    const result = await Promise.race([responsePromise, timeout]);
+    res.json({ message: 'Feed level received', ...result });
+    
+  } catch (err) {
+    // Ensure cleanup on any error
+    const { client } = require('../utils/mqtt');
+    const responseTopic = `KY/FEED/LEVEL/SHOW/${deviceId}`;
+    client.unsubscribe(responseTopic);
+    
+    if (err.message === 'Timeout') {
+      res.status(408).json({ message: 'Feed level request timed out' });
+    } else {
+      console.error('Request feed level error:', err);
+      res.status(500).json({ message: 'Server error: ' + err.message });
+    }
+  }
+};
+
+// Farmer: Manual feed command
+exports.manualFeed = async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    if (!deviceId) return res.status(400).json({ message: 'deviceId is required' });
+    await publish(`KY/FEED/FEED/${deviceId}`, 'feed_now');
+    res.json({ message: 'Manual feed command sent' });
+  } catch (err) {
+    console.error('Manual feed error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+// Farmer: Send current datetime as ISO string in GMT+2 to MQTT
+exports.setTimeFarmer = async (req, res) => {
+  try {
+    const { deviceId } = req.params;
+    if (!deviceId) return res.status(400).json({ message: 'deviceId is required' });
+    const now = new Date();
+    // Add 2 hours for GMT+2
+    now.setHours(now.getHours() + 2);
+    // Format as ISO string (local time, but with Z removed)
+    const isoGmt2 = now.toISOString().replace('Z', '');
+    await publish(`KY/FEED/TIME/${deviceId}`, isoGmt2);
+    res.json({ message: 'Current time sent (GMT+2)', time: isoGmt2 });
+  } catch (err) {
+    console.error('Set time farmer error:', err);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 // controllers/deviceController.js
 
 const Device = require('../models/Device');

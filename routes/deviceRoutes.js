@@ -9,6 +9,11 @@ router.get('/device/set-time/:deviceId', deviceController.setTime);
 // Send reset command to device
 router.get('/device/reset/:deviceId', deviceController.resetDevice);
 
+// Farmer-specific routes
+router.get('/device/feed-level/:deviceId', deviceController.requestFeedLevel);
+router.get('/device/manual-feed/:deviceId', deviceController.manualFeed);
+router.get('/device/set-time-farmer/:deviceId', deviceController.setTimeFarmer);
+
 // Public ringer action (no auth)
 router.post('/device/ringer-action', deviceController.ringerAction);
 
