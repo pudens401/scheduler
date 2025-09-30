@@ -1,6 +1,6 @@
 {
-  "name": "BellBot by GD",
-  "short_name": "BellBot",
+  "name": "Scheduler App",
+  "short_name": "Scheduler",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
