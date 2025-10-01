@@ -4,7 +4,7 @@ const { authMiddleware, roleMiddleware } = require('../middlewares/auth');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const Schedule = require('../models/Schedule');
-
+const axios = require('axios');
 // Patient dashboard route
 router.get(
   '/dashboard/patient',
@@ -16,10 +16,7 @@ router.get(
       const deviceId = user.device.deviceId;
       const scheduleData = user.device.schedule || [];
       // Fetch notifications for this device
-      const notifications = await Notification.find({ deviceId });
-      console.log('Notifications:', notifications);
-      console.log('First notification:', notifications[0]);
-      console.log('Notification fields:', notifications[0] ? Object.keys(notifications[0].toObject()) : 'No notifications');
+      const notifications = await axios.get(`/notifications/${deviceId}`);
       res.render('patientDashboard', {
         user,
         deviceId,
