@@ -18,6 +18,8 @@ router.get(
       // Fetch notifications for this device
       const notifications = await Notification.find({ deviceId });
       console.log('Notifications:', notifications);
+      console.log('First notification:', notifications[0]);
+      console.log('Notification fields:', notifications[0] ? Object.keys(notifications[0].toObject()) : 'No notifications');
       res.render('patientDashboard', {
         user,
         deviceId,
