@@ -13,20 +13,6 @@
             .schedule-input { min-width: 120px; }
             .medication-input { min-width: 200px; }
         }
-        .loading-spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #3498db;
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block;
-            margin-right: 10px;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
     </style>
 </head>
 <body class="bg-gray-50 font-sans">
@@ -89,23 +75,46 @@
         <!-- Right Column -->
         <div class="space-y-6">
             <!-- Notifications -->
-            <section class="bg-white rounded-lg shadow p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl md:text-2xl font-semibold text-gray-700">Notifications</h2>
-                    <button id="refreshNotifications" class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 py-1 px-3 rounded transition duration-200">
-                        Refresh
-                    </button>
+            <!-- Notifications -->
+<section class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-xl md:text-2xl font-semibold mb-4 text-gray-700">Notifications</h2>
+    <div class="space-y-3" id="notifications">
+        <% if (notifications && notifications.length > 0) { %>
+            <% notifications.forEach(function(notification){ %>
+            <div class="notification-<%= notification.type || 'warning' %> p-3 rounded-md flex justify-between items-center">
+                <div>
+                    <p class="text-sm md:text-base font-medium">
+                        <%= typeof notification.message === 'string' ? notification.message : 'Notification' %>
+                    </p>
+                    <p class="text-xs md:text-sm text-gray-500 mt-1">
+                        <% if (notification.createdAt) { %>
+                            <%= new Date(notification.createdAt).toLocaleString() %>
+                        <% } else { %>
+                            Recent
+                        <% } %>
+                    </p>
                 </div>
-                <div id="notificationsContainer">
-                    <!-- Loading state -->
-                    <div id="notificationsLoading" class="text-center py-4">
-                        <div class="loading-spinner"></div>
-                        <span class="text-gray-600">Loading notifications...</span>
-                    </div>
-                    
-                    <!-- Notifications will be dynamically inserted here -->
+                <div>
+                    <% if (!notification.read) { %>
+                    <form method="POST" action="/notifications/mark-read/<%= notification._id %>">
+                        <input type="hidden" name="_method" value="PATCH">
+                        <button type="submit" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 transition">
+                            Mark as read
+                        </button>
+                    </form>
+                    <% } else { %>
+                    <span class="text-xs text-gray-400 px-2 py-1">Read</span>
+                    <% } %>
                 </div>
-            </section>
+            </div>
+            <% }); %>
+        <% } else { %>
+            <div class="text-center py-4 text-gray-500 text-sm">
+                No notifications found.
+            </div>
+        <% } %>
+    </div>
+</section>
 
             <!-- Profile -->
             <section class="bg-white rounded-lg shadow p-6">
@@ -128,100 +137,6 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const notificationsContainer = document.getElementById('notificationsContainer');
-        const loadingElement = document.getElementById('notificationsLoading');
-        const refreshButton = document.getElementById('refreshNotifications');
-        const deviceId = '<%= deviceId %>'; // Get deviceId from EJS
-
-        // Function to fetch and display notifications
-        async function loadNotifications() {
-            try {
-                loadingElement.style.display = 'block';
-                
-                const response = await fetch(`/notifications/${deviceId}`);
-                const result = await response.json();
-                
-                if (response.ok) {
-                    displayNotifications(result.notifications || result.data || []);
-                } else {
-                    throw new Error(result.error || 'Failed to load notifications');
-                }
-            } catch (error) {
-                console.error('Error loading notifications:', error);
-                notificationsContainer.innerHTML = `
-                    <div class="text-center py-4 text-red-600 bg-red-50 rounded">
-                        <p>Error loading notifications</p>
-                        <p class="text-sm text-red-500">${error.message}</p>
-                    </div>
-                `;
-            } finally {
-                loadingElement.style.display = 'none';
-            }
-        }
-
-        // Function to display notifications in the container
-        function displayNotifications(notifications) {
-            if (!notifications || notifications.length === 0) {
-                notificationsContainer.innerHTML = `
-                    <div class="text-center py-4 text-gray-500 text-sm">
-                        No notifications found.
-                    </div>
-                `;
-                return;
-            }
-
-            const notificationsHTML = notifications.map(notification => `
-                <div class="notification-${notification.type || 'warning'} p-3 rounded-md flex justify-between items-center mb-3">
-                    <div class="flex-1">
-                        <p class="text-sm md:text-base font-medium">
-                            ${notification.message || notification.content || 'Notification'}
-                        </p>
-                        <p class="text-xs md:text-sm text-gray-500 mt-1">
-                            ${notification.createdAt ? new Date(notification.createdAt).toLocaleString() : 'Recent'}
-                        </p>
-                    </div>
-                    <div>
-                        ${!notification.read ? `
-                            <button onclick="markAsRead('${notification._id || notification.id}')" 
-                                    class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 transition">
-                                Mark as read
-                            </button>
-                        ` : `
-                            <span class="text-xs text-gray-400 px-2 py-1">Read</span>
-                        `}
-                    </div>
-                </div>
-            `).join('');
-
-            notificationsContainer.innerHTML = notificationsHTML;
-        }
-
-        // Function to mark notification as read
-        window.markAsRead = async function(notificationId) {
-            try {
-                const response = await fetch(`/notifications/mark-read/${notificationId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-
-                if (response.ok) {
-                    // Reload notifications after marking as read
-                    loadNotifications();
-                } else {
-                    alert('Error marking notification as read');
-                }
-            } catch (error) {
-                console.error('Error marking notification as read:', error);
-                alert('Error marking notification as read');
-            }
-        };
-
-        // Event listeners
-        refreshButton.addEventListener('click', loadNotifications);
-
-        // Schedule update button (keep your existing code)
         document.getElementById('updateScheduleBtn').addEventListener('click', function() {
             const rows = document.querySelectorAll('#scheduleTable tr');
             const updatedSchedule = [];
@@ -242,9 +157,6 @@
             .then(data => alert('Schedule updated successfully!'))
             .catch(err => alert('Error updating schedule'));
         });
-
-        // Load notifications when page loads
-        loadNotifications();
     });
 </script>
 </body>

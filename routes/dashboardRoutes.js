@@ -34,16 +34,17 @@ router.get(
       console.log('Found notifications:', notifications.length);
       console.log('Notification details:', notifications.map(n => ({
         id: n._id,
-        message: n.message,
+        message: n["message"],
         type: n.type,
         read: n.read,
-        createdAt: n.createdAt
+        createdAt: n["createdAt"],
       })));
       
       res.render('patientDashboard', {
         user,
         deviceId,
-        scheduleData
+        scheduleData,
+        notifications: notifications || [] // Ensure it's always an array
       });
     } catch (err) {
       console.error('Dashboard error:', err);
