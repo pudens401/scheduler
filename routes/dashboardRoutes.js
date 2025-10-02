@@ -4,6 +4,7 @@ const { authMiddleware, roleMiddleware } = require('../middlewares/auth');
 const Notification = require('../models/Notification');
 const User = require('../models/User');
 const Schedule = require('../models/Schedule');
+const { default: axios } = require('axios');
 
 // Patient dashboard route
 router.get(
@@ -26,25 +27,18 @@ router.get(
       console.log('Device ID:', deviceId);
       
       // Fetch notifications for this device - using proper query
-      const notifications = await Notification.find({ 
-        deviceId: deviceId 
-      }).sort({ createdAt: -1 }); // Sort by newest first
-      
-      // Debug: Better logging
-      console.log('Found notifications:', notifications.length);
-      console.log('Notification details:', notifications.map(n => ({
-        id: n._id,
-        message: n["message"],
-        type: n.type,
-        read: n.read,
-        createdAt: n["createdAt"],
-      })));
+      // const notifications = await Notification.find({ 
+      //   deviceId: deviceId 
+      // })
+
+      const notifications = await axios.get(`https://smart-scheduler-s5q7.onrender.com/notifications/${deviceId}`)
+  
       
       res.render('patientDashboard', {
         user,
         deviceId,
         scheduleData,
-        notifications: notifications || [] // Ensure it's always an array
+        notifications
       });
     } catch (err) {
       console.error('Dashboard error:', err);
