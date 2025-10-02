@@ -43,8 +43,7 @@ router.get(
       res.render('patientDashboard', {
         user,
         deviceId,
-        scheduleData,
-        notifications: notifications || [] // Ensure it's always an array
+        scheduleData
       });
     } catch (err) {
       console.error('Dashboard error:', err);
