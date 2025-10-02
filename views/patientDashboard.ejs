@@ -84,7 +84,7 @@
             <div class="notification-<%= notification.type || 'warning' %> p-3 rounded-md flex justify-between items-center">
                 <div>
                     <p class="text-sm md:text-base font-medium">
-                        <%= typeof(notification.message) === 'string' ? String(notification.message) : 'Notification' %>
+                        <%= notification.type == 'success' ? "Pill taken successfully" : notification.type == 'warning' ? 'Pill missed' : 'Notification' %>
                     </p>
                     <p class="text-xs md:text-sm text-gray-500 mt-1">
                         <% if (notification.createdAt) { %>
