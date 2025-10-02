@@ -75,30 +75,46 @@
         <!-- Right Column -->
         <div class="space-y-6">
             <!-- Notifications -->
-            <section class="bg-white rounded-lg shadow p-6">
-                <h2 class="text-xl md:text-2xl font-semibold mb-4 text-gray-700">Notifications</h2>
-                <div class="space-y-3" id="notifications">
-                    <% if (notifications && notifications.length > 0) { %>
-                        <% notifications.forEach( notification=> { %>
-                        <div class="notification-<%= notification.type || 'warning' %> p-3 rounded-md flex justify-between items-center">
-                            <div>
-                                <p class="text-sm md:text-base"><%= String(notification.message) || 'No message' %></p>
-                                <p class="text-xs md:text-sm text-gray-500 mt-1"><%= notification.createdAt ? new Date(notification.createdAt).toLocaleString() : 'No date' %></p>
-                            </div>
-                            <% if (!notification.read) { %>
-                            <form method="post" action="/notifications/mark-read/<%= notification._id %>?_method=PATCH">
-                                <button type="submit" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200">Mark as read</button>
-                            </form>
-                            <% } else { %>
-                            <span class="text-xs text-gray-400">Read</span>
-                            <% } %>
-                        </div>
-                        <% }) %>
+            <!-- Notifications -->
+<section class="bg-white rounded-lg shadow p-6">
+    <h2 class="text-xl md:text-2xl font-semibold mb-4 text-gray-700">Notifications</h2>
+    <div class="space-y-3" id="notifications">
+        <% if (notifications && notifications.length > 0) { %>
+            <% notifications.forEach(function(notification){ %>
+            <div class="notification-<%= notification.type || 'warning' %> p-3 rounded-md flex justify-between items-center">
+                <div>
+                    <p class="text-sm md:text-base font-medium">
+                        <%= typeof notification.message === 'string' ? notification.message : 'Notification' %>
+                    </p>
+                    <p class="text-xs md:text-sm text-gray-500 mt-1">
+                        <% if (notification.createdAt) { %>
+                            <%= new Date(notification.createdAt).toLocaleString() %>
+                        <% } else { %>
+                            Recent
+                        <% } %>
+                    </p>
+                </div>
+                <div>
+                    <% if (!notification.read) { %>
+                    <form method="POST" action="/notifications/mark-read/<%= notification._id %>">
+                        <input type="hidden" name="_method" value="PATCH">
+                        <button type="submit" class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 transition">
+                            Mark as read
+                        </button>
+                    </form>
                     <% } else { %>
-                        <div class="text-gray-500 text-sm">No notifications.</div>
+                    <span class="text-xs text-gray-400 px-2 py-1">Read</span>
                     <% } %>
                 </div>
-            </section>
+            </div>
+            <% }); %>
+        <% } else { %>
+            <div class="text-center py-4 text-gray-500 text-sm">
+                No notifications found.
+            </div>
+        <% } %>
+    </div>
+</section>
 
             <!-- Profile -->
             <section class="bg-white rounded-lg shadow p-6">
